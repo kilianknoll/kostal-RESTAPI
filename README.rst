@@ -9,8 +9,6 @@ Introduction
 This library provides a pure Python interface to access Kostal Inverters via currently undocumented RESTAPIs
 
 
-https://www.kostal-solar-electric.com/de-de/download/-/media/document-library-folder---kse/2018/08/30/08/53/ba_kostal_interface_modbus-tcp_sunspec.pdf
-
 Tested  with Python version 3.5, 3.6 and 3.8.
 
 
