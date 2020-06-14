@@ -56,7 +56,7 @@
 #   PASSWD that you log in to the Kostal Inverter
 #
 BASE_URL = "http://192.168.178.41/api/v1"
-PASSWD = 'Knoll123'
+PASSWD = 'YOURSECRETPASSWORD'
 #
 # Nothing configurable beyond this point
 
