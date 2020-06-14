@@ -20,6 +20,7 @@ Features
 * Read Events from Kostal Inverter
 * Read DC, AC, Battery - and Statistics data 
 * Write Battery MinSOC, MinHomeComsumption and DynamicSoc Parameters
+* Write Shadow Management Parameters 
 
 
 Tested with 

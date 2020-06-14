@@ -38,6 +38,11 @@
 #
 # Version 1.0
 #
+# Update  June 14 2020
+# Version 1.0.1
+# Added ability to change shadow management parameters
+#
+#
 # 
 # Tested with:
 # python 3.6.2 (windows)
@@ -366,18 +371,29 @@ if __name__ == "__main__":
         print ("Actively changing Battery Charge Parameters :")
         pp.pprint (mykostalsettings.KostalwriteableSettings.items())                                    #Dictionary initially has no values set
         #Setting Values:
+        #DynamicSoc - valid values: 0 (disabled), 1 (enabled)
         mykostalsettings.KostalwriteableSettings['Battery:DynamicSoc:Enable'] = 0
+        #MinHomeComsumption - valid values: min 50 [w]
         mykostalsettings.KostalwriteableSettings['Battery:MinHomeComsumption'] = 50
+        #MinSoc - valid values: range from 5 to 100, stepsize =5
         mykostalsettings.KostalwriteableSettings['Battery:MinSoc'] = 5
+        #ShadowMgmt - valid values: 0=shadow management disabled, 1= shadowmanagement active for string 1 only, 2= shadowmanagement active for string 2 only, 3= shadow management active for string 1 and 2
+        #Values can be set up to value of 7 -but higher values greater than 4 - unclear what they do
+        mykostalsettings.KostalwriteableSettings['Generator:ShadowMgmt:Enable'] = 3         
         #Applying values:
         mykostalsettings.writevalue('Battery:DynamicSoc:Enable',mykostalsettings.KostalwriteableSettings['Battery:DynamicSoc:Enable'])
         mykostalsettings.writevalue('Battery:MinHomeComsumption',mykostalsettings.KostalwriteableSettings['Battery:MinHomeComsumption'])
         mykostalsettings.writevalue('Battery:MinSoc',mykostalsettings.KostalwriteableSettings['Battery:MinSoc'])
+        mykostalsettings.writevalue('Generator:ShadowMgmt:Enable',mykostalsettings.KostalwriteableSettings['Generator:ShadowMgmt:Enable'])
         #Show the updated values of the dictionary:
         pp.pprint (mykostalsettings.KostalwriteableSettings.items())
         
         #Alternatively, you could directly call the function and pass values too:
         #mykostalsettings.writevalue("Battery:MinSoc", 50)
+        """
+        # End section where we change parameters
+        """
+
         
         
         #This section shows how to pull the Events from the Inverter
