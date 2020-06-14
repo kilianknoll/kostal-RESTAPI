@@ -21,6 +21,7 @@ Features
 * Read DC, AC, Battery - and Statistics data 
 * Write Battery MinSOC, MinHomeComsumption and DynamicSoc Parameters
 * Write Shadow Management Parameters 
+* Write Switched Output Parameters
 
 
 Tested with 

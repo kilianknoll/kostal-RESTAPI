@@ -41,6 +41,9 @@
 # Update  June 14 2020
 # Version 1.0.1
 # Added ability to change shadow management parameters
+# Version 1.0.2
+# Added ability to change Switched output parameters
+#
 #
 #
 # 
@@ -53,7 +56,7 @@
 #   PASSWD that you log in to the Kostal Inverter
 #
 BASE_URL = "http://192.168.178.41/api/v1"
-PASSWD = 'YOURSECRETPASSWORD'
+PASSWD = 'Knoll123'
 #
 # Nothing configurable beyond this point
 
@@ -368,7 +371,7 @@ if __name__ == "__main__":
         """
         # This is the current list of tested capabilities - where we change Parameters on the Inverter
         """
-        print ("Actively changing Battery Charge Parameters :")
+        print ("Actively changing Parameters :")
         pp.pprint (mykostalsettings.KostalwriteableSettings.items())                                    #Dictionary initially has no values set
         #Setting Values:
         #DynamicSoc - valid values: 0 (disabled), 1 (enabled)
@@ -379,12 +382,48 @@ if __name__ == "__main__":
         mykostalsettings.KostalwriteableSettings['Battery:MinSoc'] = 5
         #ShadowMgmt - valid values: 0=shadow management disabled, 1= shadowmanagement active for string 1 only, 2= shadowmanagement active for string 2 only, 3= shadow management active for string 1 and 2
         #Values can be set up to value of 7 -but higher values greater than 4 - unclear what they do
-        mykostalsettings.KostalwriteableSettings['Generator:ShadowMgmt:Enable'] = 3         
+        mykostalsettings.KostalwriteableSettings['Generator:ShadowMgmt:Enable'] = 3
+        #
+        #
+        #Parameters for Digital Output - START:
+        #
+        #DigitalOutputs:Customer:ConfigurationFlags - -valid values [int] 1 = Self-consumption control, 2= Dynamic Self-consumption control & Function 1, 3&4= Deactivated, 5=Self-consumption control & Function 2, 6=Dynamic Self-consumption control & Function 2, 7,8= Deactivated, 9= Self-consumption control & Function 1 & Other Options Leave Switch Output Activated, 10 = Dynamic Self-consumption control & Function 1 & Other Options Leave Switch Output Activated, 11,12= Deactivated, 13=Self-consumption control & Function 2 & Other Options Leave Switch Output Activated, 14= Dynamic Self-consumption control & Function 2 & Other Options Leave Switch Output Activated
+        mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:ConfigurationFlags'] = 14
+        #
+        # For Function 1:
+        #'DigitalOutputs:Customer:TimeMode:PowerThreshold' [W]
+        mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:PowerThreshold']=1112
+        #'DigitalOutputs:Customer:TimeMode:StableTime' [min]
+        mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:StableTime']= 4
+        #'DigitalOutputs:Customer:TimeMode:RunTime' [min]
+        mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:RunTime']= 3
+        #'DigitalOutputs:Customer:TimeMode:MaxNoOfSwitchingCyclesPerDay' [int]
+        mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:MaxNoOfSwitchingCyclesPerDay']= 2
+        # For Function 2: 
+        # DigitalOutputs:Customer:PowerMode:OnPowerThreshold - Activation Limit - valid values in [w]
+        mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:PowerMode:OnPowerThreshold'] = 1533
+        # DigitalOutputs:Customer:PowerMode:OffPowerThreshold -Deactiviation Limit - valid values in [w]
+        mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:PowerMode:OffPowerThreshold'] = 1111
+        #For Other Options: 
+        #DigitalOutputs:Customer:DelayTime -valid values in [s]
+        mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:DelayTime']= 11        
+        #
+        #Parameters for Digital Output - END
+        #
         #Applying values:
         mykostalsettings.writevalue('Battery:DynamicSoc:Enable',mykostalsettings.KostalwriteableSettings['Battery:DynamicSoc:Enable'])
         mykostalsettings.writevalue('Battery:MinHomeComsumption',mykostalsettings.KostalwriteableSettings['Battery:MinHomeComsumption'])
         mykostalsettings.writevalue('Battery:MinSoc',mykostalsettings.KostalwriteableSettings['Battery:MinSoc'])
         mykostalsettings.writevalue('Generator:ShadowMgmt:Enable',mykostalsettings.KostalwriteableSettings['Generator:ShadowMgmt:Enable'])
+        #
+        mykostalsettings.writevalue('DigitalOutputs:Customer:ConfigurationFlags', mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:ConfigurationFlags'])
+        mykostalsettings.writevalue('DigitalOutputs:Customer:DelayTime',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:DelayTime'])
+        mykostalsettings.writevalue('DigitalOutputs:Customer:TimeMode:PowerThreshold',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:PowerThreshold'])
+        mykostalsettings.writevalue('DigitalOutputs:Customer:TimeMode:StableTime',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:StableTime'])
+        mykostalsettings.writevalue('DigitalOutputs:Customer:TimeMode:RunTime',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:RunTime'])
+        mykostalsettings.writevalue('DigitalOutputs:Customer:TimeMode:MaxNoOfSwitchingCyclesPerDay',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:MaxNoOfSwitchingCyclesPerDay'])
+        mykostalsettings.writevalue('DigitalOutputs:Customer:PowerMode:OnPowerThreshold',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:PowerMode:OnPowerThreshold'])
+        mykostalsettings.writevalue('DigitalOutputs:Customer:PowerMode:OffPowerThreshold',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:PowerMode:OffPowerThreshold'])        
         #Show the updated values of the dictionary:
         pp.pprint (mykostalsettings.KostalwriteableSettings.items())
         
