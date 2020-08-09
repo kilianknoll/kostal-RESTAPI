@@ -59,7 +59,7 @@
 #   PASSWD that you log in to the Kostal Inverter
 #
 BASE_URL = "http://192.168.178.41/api/v1"
-PASSWD = 'YOURSUPERSECRETPASSWORD'
+PASSWD = 'YOURSECRETPWD'
 #
 # Nothing configurable beyond this point
 
@@ -370,7 +370,7 @@ if __name__ == "__main__":
         
         my_parser = argparse.ArgumentParser()
         my_parser.add_argument('--nargs', nargs='+',
-                            help='You may specify more than one parameter on the commandline e.g.: python KostalRestapi.py  -StableTime 8 -RunTime 11 -PowerThreshold 3333')
+                            help='You may specify more than one parameter on the commandline e.g.: python Kostal-RESTAPI.py  -StableTime 8 -RunTime 11 -PowerThreshold 3333')
         my_parser.add_argument('-DynamicSoc',
                             action='store',
                             type = int,
