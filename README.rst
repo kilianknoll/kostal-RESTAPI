@@ -22,6 +22,7 @@ Features
 * Write Battery MinSOC, MinHomeComsumption and DynamicSoc Parameters
 * Write Shadow Management Parameters 
 * Write Switched Output Parameters
+* Accessible via commandline options
 
 
 Tested with 
@@ -43,6 +44,7 @@ Getting started
 ---------------
 
 To use ``kostal-RESTAPI`` in a project take a look at the __main__ section in kostal-RESTAPI.py how to include it in your environment
+You may also run the script without any parameters to understand the command line options
 
 
 

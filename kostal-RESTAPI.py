@@ -43,6 +43,9 @@
 # Added ability to change shadow management parameters
 # Version 1.0.2
 # Added ability to change Switched output parameters
+# Version 1.0.3
+# Added ability to operate via commandline interface to either set - or query parameters
+# For Options use python3 KostalRestapi.py -h 
 #
 #
 #
@@ -56,7 +59,7 @@
 #   PASSWD that you log in to the Kostal Inverter
 #
 BASE_URL = "http://192.168.178.41/api/v1"
-PASSWD = 'YOURSECRETPASSWORD'
+PASSWD = 'YOURSUPERSECRETPASSWORD'
 #
 # Nothing configurable beyond this point
 
@@ -70,6 +73,7 @@ import hashlib
 import os
 import hmac
 import time
+import argparse
 
 from Crypto.Cipher import AES  #windows
 
@@ -241,7 +245,8 @@ class kostal_writeablesettings (object):
                 print (self.HtmlReturn)
             
         except Exception as Bad:
-            print ("ran into error", Bad)
+            print ("Kostal-RESTAPI ran into error", Bad)
+           
        
     #No input required - once authenticated will query the Events of the Inverter
     #It will return two values:
@@ -362,157 +367,418 @@ class kostal_writeablesettings (object):
 
 if __name__ == "__main__":
     try:
-        print ("----------------------------------------------------------")    
-        print("start log on sequence")
-        headers = LogMeIn(BASE_URL, PASSWD)        
-        print ("----------------------------------------------------------")        
-        mykostalsettings = kostal_writeablesettings()
         
-        """
-        # This is the current list of tested capabilities - where we change Parameters on the Inverter
-        """
-        print ("Actively changing Parameters :")
-        pp.pprint (mykostalsettings.KostalwriteableSettings.items())                                    #Dictionary initially has no values set
-        #Setting Values:
-        #DynamicSoc - valid values: 0 (disabled), 1 (enabled)
-        mykostalsettings.KostalwriteableSettings['Battery:DynamicSoc:Enable'] = 0
-        #MinHomeComsumption - valid values: min 50 [w]
-        mykostalsettings.KostalwriteableSettings['Battery:MinHomeComsumption'] = 50
-        #MinSoc - valid values: range from 5 to 100, stepsize =5
-        mykostalsettings.KostalwriteableSettings['Battery:MinSoc'] = 5
-        #ShadowMgmt - valid values: 0=shadow management disabled, 1= shadowmanagement active for string 1 only, 2= shadowmanagement active for string 2 only, 3= shadow management active for string 1 and 2
-        #Values can be set up to value of 7 -but higher values greater than 4 - unclear what they do
-        mykostalsettings.KostalwriteableSettings['Generator:ShadowMgmt:Enable'] = 3
-        #
-        #
-        #Parameters for Digital Output - START:
-        #
-        #DigitalOutputs:Customer:ConfigurationFlags - -valid values [int] 1 = Self-consumption control, 2= Dynamic Self-consumption control & Function 1, 3&4= Deactivated, 5=Self-consumption control & Function 2, 6=Dynamic Self-consumption control & Function 2, 7,8= Deactivated, 9= Self-consumption control & Function 1 & Other Options Leave Switch Output Activated, 10 = Dynamic Self-consumption control & Function 1 & Other Options Leave Switch Output Activated, 11,12= Deactivated, 13=Self-consumption control & Function 2 & Other Options Leave Switch Output Activated, 14= Dynamic Self-consumption control & Function 2 & Other Options Leave Switch Output Activated
-        mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:ConfigurationFlags'] = 14
-        #
-        # For Function 1:
-        #'DigitalOutputs:Customer:TimeMode:PowerThreshold' [W]
-        mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:PowerThreshold']=1112
-        #'DigitalOutputs:Customer:TimeMode:StableTime' [min]
-        mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:StableTime']= 4
-        #'DigitalOutputs:Customer:TimeMode:RunTime' [min]
-        mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:RunTime']= 3
-        #'DigitalOutputs:Customer:TimeMode:MaxNoOfSwitchingCyclesPerDay' [int]
-        mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:MaxNoOfSwitchingCyclesPerDay']= 2
-        # For Function 2: 
-        # DigitalOutputs:Customer:PowerMode:OnPowerThreshold - Activation Limit - valid values in [w]
-        mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:PowerMode:OnPowerThreshold'] = 1533
-        # DigitalOutputs:Customer:PowerMode:OffPowerThreshold -Deactiviation Limit - valid values in [w]
-        mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:PowerMode:OffPowerThreshold'] = 1111
-        #For Other Options: 
-        #DigitalOutputs:Customer:DelayTime -valid values in [s]
-        mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:DelayTime']= 11        
-        #
-        #Parameters for Digital Output - END
-        #
-        #Applying values:
-        mykostalsettings.writevalue('Battery:DynamicSoc:Enable',mykostalsettings.KostalwriteableSettings['Battery:DynamicSoc:Enable'])
-        mykostalsettings.writevalue('Battery:MinHomeComsumption',mykostalsettings.KostalwriteableSettings['Battery:MinHomeComsumption'])
-        mykostalsettings.writevalue('Battery:MinSoc',mykostalsettings.KostalwriteableSettings['Battery:MinSoc'])
-        mykostalsettings.writevalue('Generator:ShadowMgmt:Enable',mykostalsettings.KostalwriteableSettings['Generator:ShadowMgmt:Enable'])
-        #
-        mykostalsettings.writevalue('DigitalOutputs:Customer:ConfigurationFlags', mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:ConfigurationFlags'])
-        mykostalsettings.writevalue('DigitalOutputs:Customer:DelayTime',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:DelayTime'])
-        mykostalsettings.writevalue('DigitalOutputs:Customer:TimeMode:PowerThreshold',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:PowerThreshold'])
-        mykostalsettings.writevalue('DigitalOutputs:Customer:TimeMode:StableTime',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:StableTime'])
-        mykostalsettings.writevalue('DigitalOutputs:Customer:TimeMode:RunTime',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:RunTime'])
-        mykostalsettings.writevalue('DigitalOutputs:Customer:TimeMode:MaxNoOfSwitchingCyclesPerDay',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:MaxNoOfSwitchingCyclesPerDay'])
-        mykostalsettings.writevalue('DigitalOutputs:Customer:PowerMode:OnPowerThreshold',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:PowerMode:OnPowerThreshold'])
-        mykostalsettings.writevalue('DigitalOutputs:Customer:PowerMode:OffPowerThreshold',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:PowerMode:OffPowerThreshold'])        
-        #Show the updated values of the dictionary:
-        pp.pprint (mykostalsettings.KostalwriteableSettings.items())
-        
-        #Alternatively, you could directly call the function and pass values too:
-        #mykostalsettings.writevalue("Battery:MinSoc", 50)
-        """
-        # End section where we change parameters
-        """
+        my_parser = argparse.ArgumentParser()
+        my_parser.add_argument('--nargs', nargs='+',
+                            help='You may specify more than one parameter on the commandline e.g.: python KostalRestapi.py  -StableTime 8 -RunTime 11 -PowerThreshold 3333')
+        my_parser.add_argument('-DynamicSoc',
+                            action='store',
+                            type = int,
+                            choices=[0,1],
+                            help='Set the Dynamic State of Charge 0=inactive, 1=active')        
+        my_parser.add_argument('-SetMinsoc',
+                            action='store',
+                            type = int,
+                            choices=[5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95],
+                            help='Set your Battery minimum State of Charge - valid values in increments of 5 ranging from 5 to 95')                             
 
+        my_parser.add_argument('-MinHomeComsumption',
+                            action='store',
+                            type = int,
+                            #choices=[5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95],
+                            help='Set your Battery minimum mome consumption [w]. Allowed range : integer values  from 50 through 10000')
+                            
+        my_parser.add_argument('-SmartBatteryControl',
+                            action='store',
+                            type = int,
+                            choices=[0,1],
+                            help='Set your Smart Battery Control . Allowed values 0=off, 1=on')                            
+
+        my_parser.add_argument('-Strategy',
+                            action='store',
+                            type = int,
+                            choices=[1,2],
+                            help='Set your Smart Battery Strategy . Allowed values 1=Automatic, 2=Automatic Economic')
+                            #This is a little weird. The actual RestAPI allows setting it to 0,1,2 - but I had not seen any difference between 0 and 1
+                            
+        my_parser.add_argument('-ShadowMgmt',
+                            action='store',
+                            type = int,
+                            choices=[0,1,2,3],
+                            help='Sets Shadow Management Parameters : valid values: 0=shadow management disabled, 1= shadowmanagement active for string 1 only, 2= shadowmanagement active for string 2 only, 3= shadow management active for string 1 and 2 ')
+        my_parser.add_argument('-ConfigurationFlags',
+                            action='store',
+                            type = int,
+                            choices=[1,2,5,6,9,10,13,14],
+                            help='Sets Digital Output Parameters : - -valid values [int] 1 = Self-consumption control, 2= Dynamic Self-consumption control & Function 1, 3&4= Deactivated, 5=Self-consumption control & Function 2, 6=Dynamic Self-consumption control & Function 2, 7,8= Deactivated, 9= Self-consumption control & Function 1 & Other Options Leave Switch Output Activated, 10 = Dynamic Self-consumption control & Function 1 & Other Options Leave Switch Output Activated, 11,12= Deactivated, 13=Self-consumption control & Function 2 & Other Options Leave Switch Output Activated, 14= Dynamic Self-consumption control & Function 2 & Other Options Leave Switch Output Activated ')   
+        my_parser.add_argument('-PowerThreshold',
+                            action='store',
+                            type = int,
+                            #choices=range(1,999000),
+                            help='Sets the Power Limit [W] of the Switched output for Function 1. Allowed range : integer values from 1 through 999000') 
+        my_parser.add_argument('-StableTime',
+                           action='store',
+                           type = int,
+                           #choices=range(1,720),
+                           help='Sets the StableTime in [minutes] the inverter must exceed the set "power limit" -see also PowerThreshold  before the consumer is switched on. Allowed range : integer values  from 1 through 720') 
+        my_parser.add_argument('-RunTime',
+                           action='store',
+                           type = int,
+                           #choices=range(1,1440),
+                           help='Sets the RunTime in [minutes] the inverter switches on the consumer. Allowed range : integer values  from 1 through 1440') 
+        my_parser.add_argument('-MaxNoOfSwitchingCyclesPerDay',
+                           action='store',
+                           type = int,
+                           #choices=range(1,999),
+                           help='Sets how often the inverter switches on the consumer. Allowed range : integer values  from 1 through 999') 
+        my_parser.add_argument('-OnPowerThreshold',
+                           action='store',
+                           type = int,
+                           #choices=range(1,999),
+                           help='Sets the Power on Threshold [W] (Activation Limit) for "Function 2". Allowed range : integer values  from 10 through 1000000') 
+        my_parser.add_argument('-OffPowerThreshold',
+                           action='store',
+                           type = int,
+                           #choices=range(1,999),
+                           help='Sets the Power off Threshold [W] (Deactivation Limit) for "Function 2". Allowed range : integer values  from 10 through 1000000') 
+
+        my_parser.add_argument('-ReadLiveData',
+                           action='store',
+                           type = int,
+                           choices=[1],
+                           help='Reads Live Data from Inverter: Set to 1 if you would like to...')                           
+
+        my_parser.add_argument('-ReadACData',
+                           action='store',
+                           type = int,
+                           choices=[1],
+                           help='Reads AC Data from Inverter: Set to 1 if you would like to...')  
+
+        my_parser.add_argument('-ReadBatteryData',
+                           action='store',
+                           type = int,
+                           choices=[1],
+                           help='Reads Battery Data from Inverter: Set to 1 if you would like to...')  
+
+        my_parser.add_argument('-ReadPowerMeterData',
+                           action='store',
+                           type = int,
+                           choices=[1],
+                           help='Reads Power Meter Data from Inverter: Set to 1 if you would like to...')  
+
+        my_parser.add_argument('-ReadStatisticsData',
+                           action='store',
+                           type = int,
+                           choices=[1],
+                           help='Reads Statistics Data from Inverter: Set to 1 if you would like to...')  
+
+        my_parser.add_argument('-ReadString1Data',
+                           action='store',
+                           type = int,
+                           choices=[1],
+                           help='Reads String 1 Data from Inverter: Set to 1 if you would like to...')  
+
+        my_parser.add_argument('-ReadString2Data',
+                           action='store',
+                           type = int,
+                           choices=[1],
+                           help='Reads String 2 Data  from Inverter: Set to 1 if you would like to...')  
+
+        #args = my_parser.parse_args()
+        args = vars(my_parser.parse_args())
+        #print ("Length of what we have ",len(args))
+        CommandlineInput = 0
+        for i in args:
+            #print ("mein i ist ",i)
+            #print ("meein args i ist",args[i]) 
         
-        
-        #This section shows how to pull the Events from the Inverter
-        print ("----------------------------------------------------------")        
-        print ("Start accessing the event log information")
-        MyEventStatus, myCurrentErrorEvents = mykostalsettings.getEvents()
-        if ((MyEventStatus == 0) and (len (myCurrentErrorEvents) <1)):
-            print("Everything is all right - no active error events from Inverter")
-        else:
-            print ("We have the following error events")
-            pp.pprint(myCurrentErrorEvents)
-        if (MyEventStatus == -1):
-            print("We have trouble accessing the event information of the inverter")
-            pp.pprint(myCurrentErrorEvents)         
-        #
+            if (str(args[i]) != 'None'):
+                #print ("Found", i , args[i])
+                CommandlineInput = 1        
+                #print ("CommandlineInput is ", CommandlineInput , " So will obeye what was specified on the commandline")
+
+                
             
-        #This section shows how to pull various Live Data and Statistics data  from the inverter  
-        StandardLiveView = "/processdata/devices:local"              # The standard stuff
-        ACView =  "/processdata/devices:local:ac"                               
-        BatteryView = "/processdata/devices:local:battery"           #Everything from Battery  
-        PowerMeterView = "/processdata/devices:local:powermeter"     #Everything from Smartmeter
-        StatisticsView = "/processdata/scb:statistic:EnergyFlow"     #All the Statistics stuff 
-        Stringview1 = "/processdata/devices:local:pv1"
-        Stringview2 = "/processdata/devices:local:pv2"
-        ProberView = "/processdata/devices:prober"                   #Get nothing
-        
-        #self.eventsurl =  "/processdata/devices:scb:event:"         #Get nothing .. 
-        #
-        #Just to prove we can loop over the values too, you can change the while loop to run multiple times
-        starttime= time.time()
-        i = 0
-        while (i <1):                                           #Running the query once...
-            MyLiveDataStatus, MyLiveData = mykostalsettings.getLiveData(StandardLiveView)
-            MyACDataStatus, MyACLiveData = mykostalsettings.getLiveData(ACView)
-            MyBatteryStatus, MyBatteryLiveData =  mykostalsettings.getLiveData(BatteryView)
-            MyPowerMeterStatus, MyPowerMeterLiveData = mykostalsettings.getLiveData(PowerMeterView)
-            MyStaticsDataStatus, MyStatisticsLiveData = mykostalsettings.getLiveData(StatisticsView)
-            MyString1DataStatus, MyString1LiveData = mykostalsettings.getLiveData(Stringview1)
-            MyString2DataStatus, MyString2LiveData = mykostalsettings.getLiveData(Stringview2)
-            ProberDataStataus, ProberViewData = mykostalsettings.getLiveData(ProberView)
+        #xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        # COMMANDLINE ONLY
+        #xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        if (CommandlineInput == 1):
+            # do commandline stuff only
+            headers = LogMeIn(BASE_URL, PASSWD)              
+            mykostalsettings = kostal_writeablesettings()
+            #
+            # All Parameters
+
+            if (str(args['DynamicSoc']) != 'None'):
+                print ("Mein DynamicSoc ist ",args['DynamicSoc'])
+                mykostalsettings.KostalwriteableSettings['Battery:DynamicSoc:Enable'] = args['DynamicSoc']
+                mykostalsettings.writevalue('Battery:DynamicSoc:Enable',mykostalsettings.KostalwriteableSettings['Battery:DynamicSoc:Enable'])
+                #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['Battery:MinSoc'])            
             
-            print("-----------------------------------------")
-            print("Here are all the Values from MyLiveData :")
-            pp.pprint(MyLiveData)
-            print("-----------------------------------------")
-            print("Here are all the Values from MyACLiveData :")
-            pp.pprint(MyACLiveData)
-            print("-----------------------------------------")
-            print("Here are all the Values from MyBatteryLiveData :")            
-            pp.pprint(MyBatteryLiveData)
-            print("-----------------------------------------")
-            print("Here are all the Values from MyPowerMeterLiveData :")            
-            pp.pprint(MyPowerMeterLiveData)
-            print("-----------------------------------------")
-            print("Here are all the Values from MyStatisticsLiveData :")            
-            pp.pprint(MyStatisticsLiveData)
-            print("-----------------------------------------")
-            print("Here are all the Values from MyString1LiveData and MyString2LiveData :")
-            pp.pprint(MyString1LiveData)
-            pp.pprint(MyString2LiveData)
-            #pp.pprint (ProberViewData)  HomeOwn_P
-            print ("----------------------------------------------------------")
-            print ("DC Power Generation (from String Values)                             :", round((MyString1LiveData['P']+MyString2LiveData['P']),0))    
-            print ("A single value from MyLiveData - Home Battery Generation             :", MyLiveData['HomeBat_P'])
-            print ("A single value from MyLiveData - Home Power Consumption from Battery :", MyBatteryLiveData['P'])
-            print ("A single value from MyLiveData - Home Grid consumption               :", MyLiveData['HomeGrid_P'])
-            print ("A single value from MyLiveData - PV Power Consumption                :", MyLiveData['HomePv_P'])
-            print ("A single value from MyPowerMeterLiveData - PV Power to /from Grid    :", round(MyPowerMeterLiveData['P']),0)
-            print ("A single value from MyBatteryLiveData -Cycle Counts                  :", MyBatteryLiveData['Cycles'])
-            print ("A single value from MyBatteryLiveData -'WorkCapacity'                :", round(MyBatteryLiveData['WorkCapacity'],0))
-            print ("A single value from MyStatisticsLiveData - Yearly Yield              :", round(MyStatisticsLiveData['Statistic:Yield:Year'],0))
-            print ("----------------------------------------------------------")
+            if (str(args['SetMinsoc']) != 'None'):
+                mykostalsettings.KostalwriteableSettings['Battery:MinSoc'] = args['SetMinsoc']
+                mykostalsettings.writevalue('Battery:MinSoc',mykostalsettings.KostalwriteableSettings['Battery:MinSoc'])
+                #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['Battery:MinSoc'])
+
+            if (str(args['MinHomeComsumption']) != 'None'):
+                mykostalsettings.KostalwriteableSettings['Battery:MinHomeComsumption'] = args['MinHomeComsumption']
+                mykostalsettings.writevalue('Battery:MinHomeComsumption',mykostalsettings.KostalwriteableSettings['Battery:MinHomeComsumption'])
+                #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['Battery:MinSoc'])               
+                
+            if (str(args['SmartBatteryControl']) != 'None'):
+                mykostalsettings.KostalwriteableSettings['Battery:SmartBatteryControl:Enable'] = args['SmartBatteryControl']
+                mykostalsettings.writevalue('Battery:SmartBatteryControl:Enable',mykostalsettings.KostalwriteableSettings['Battery:SmartBatteryControl:Enable'])
+                #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['Battery:MinSoc'])                
+
+            if (str(args['Strategy']) != 'None'):
+                mykostalsettings.KostalwriteableSettings['Battery:Strategy'] = args['Strategy']
+                mykostalsettings.writevalue('Battery:Strategy',mykostalsettings.KostalwriteableSettings['Battery:Strategy'])
+                #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['Battery:MinSoc']) 
+
             
-            i = i +1
-        endtime =time.time()
-        Elapsedtime = endtime-starttime
-        print ("My elapsed time was", round(Elapsedtime,1)," seconds - I ran the loop for ", i," time(s)")
-        
-        LogMeOut (headers,BASE_URL)
-       # print ("I logged out")
+            if (str(args['ShadowMgmt']) != 'None'):
+                mykostalsettings.KostalwriteableSettings['Generator:ShadowMgmt:Enable'] = args['ShadowMgmt']
+                mykostalsettings.writevalue('Generator:ShadowMgmt:Enable',mykostalsettings.KostalwriteableSettings['Generator:ShadowMgmt:Enable'])
+                #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['Generator:ShadowMgmt:Enable'])                
+                        
+            if (str(args['ConfigurationFlags']) != 'None'):
+                mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:ConfigurationFlags'] = args['ConfigurationFlags']
+                mykostalsettings.writevalue('DigitalOutputs:Customer:ConfigurationFlags', mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:ConfigurationFlags'])
+                #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:ConfigurationFlags'] )             
+
+            if (str(args['PowerThreshold']) != 'None'):
+                mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:PowerThreshold'] = args['PowerThreshold']
+                mykostalsettings.writevalue('DigitalOutputs:Customer:TimeMode:PowerThreshold',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:PowerThreshold'])
+                #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:PowerThreshold'] )             
+
+            if (str(args['StableTime']) != 'None'):
+                mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:StableTime'] = args['StableTime']
+                mykostalsettings.writevalue('DigitalOutputs:Customer:TimeMode:StableTime',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:StableTime'])
+                #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:StableTime'] )             
+
+            if (str(args['RunTime']) != 'None'):
+                mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:RunTime'] = args['RunTime']
+                mykostalsettings.writevalue('DigitalOutputs:Customer:TimeMode:RunTime',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:RunTime'])
+                #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:RunTime'] ) 
+                
+
+            if (str(args['MaxNoOfSwitchingCyclesPerDay']) != 'None'):
+                mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:MaxNoOfSwitchingCyclesPerDay'] = args['MaxNoOfSwitchingCyclesPerDay']
+                mykostalsettings.writevalue('DigitalOutputs:Customer:TimeMode:MaxNoOfSwitchingCyclesPerDay',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:MaxNoOfSwitchingCyclesPerDay'])
+                #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:MaxNoOfSwitchingCyclesPerDay'] )                 
+
+            if (str(args['OnPowerThreshold']) != 'None'):
+                mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:PowerMode:OnPowerThreshold'] = args['OnPowerThreshold']
+                mykostalsettings.writevalue('DigitalOutputs:Customer:PowerMode:OnPowerThreshold',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:PowerMode:OnPowerThreshold'])
+                #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:PowerMode:OnPowerThreshold'] )         
+ 
+            if (str(args['OffPowerThreshold']) != 'None'):
+                mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:PowerMode:OffPowerThreshold'] = args['OffPowerThreshold']
+                mykostalsettings.writevalue('DigitalOutputs:Customer:PowerMode:OffPowerThreshold',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:PowerMode:OffPowerThreshold'])
+                #print ("I hope I wrote something...",mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:PowerMode:OffPowerThreshold'] )   
+
+            if (str(args['ReadLiveData']) != 'None'):
+                StandardLiveView = "/processdata/devices:local"              # The standard stuff
+                MyLiveDataStatus, MyLiveData = mykostalsettings.getLiveData(StandardLiveView)
+                print("Here are all the Values from ReadLiveData :")
+                pp.pprint(MyLiveData) 
+
+            if (str(args['ReadACData']) != 'None'):
+                ACView =  "/processdata/devices:local:ac" 
+                MyACDataStatus, MyACLiveData = mykostalsettings.getLiveData(ACView)
+                print("Here are all the Values from ReadACData :")
+                pp.pprint(MyACLiveData)                 
+
+            if (str(args['ReadBatteryData']) != 'None'):
+                BatteryView = "/processdata/devices:local:battery"           #Everything from Battery 
+                MyBatteryStatus, MyBatteryLiveData =  mykostalsettings.getLiveData(BatteryView)
+                print("Here are all the Values from ReadBatteryData :")
+                pp.pprint(MyBatteryLiveData)  
+
+            if (str(args['ReadPowerMeterData']) != 'None'):
+                PowerMeterView = "/processdata/devices:local:powermeter"     #Everything from Smartmeter
+                MyPowerMeterStatus, MyPowerMeterLiveData = mykostalsettings.getLiveData(PowerMeterView)
+                print("Here are all the Values from ReadPowerMeterData :")
+                pp.pprint(MyPowerMeterLiveData)                 
+
+            if (str(args['ReadStatisticsData']) != 'None'):
+                StatisticsView = "/processdata/scb:statistic:EnergyFlow"     #All the Statistics stuff
+                MyStaticsDataStatus, MyStatisticsLiveData = mykostalsettings.getLiveData(StatisticsView)
+                print("Here are all the Values from ReadStatisticsData :")
+                pp.pprint(MyStatisticsLiveData)                 
+
+            if (str(args['ReadString1Data']) != 'None'):
+                Stringview1 = "/processdata/devices:local:pv1"
+                MyString1DataStatus, MyString1LiveData = mykostalsettings.getLiveData(Stringview1)
+                print("Here are all the Values from ReadString1Data :")
+                pp.pprint(MyString1LiveData)                 
+
+            if (str(args['ReadString2Data']) != 'None'):
+                Stringview2 = "/processdata/devices:local:pv2"
+                MyString2DataStatus, MyString2LiveData = mykostalsettings.getLiveData(Stringview2)
+                print("Here are all the Values from ReadString2Data :")
+                pp.pprint(MyString2LiveData) 
+                
+
+
+            LogMeOut (headers,BASE_URL)
+        #xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        # Example mode of operations..
+        #xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx            
+        else:           #do normal stuff
+            #do normal stuff
+            print ("----------------------------------------------------------")    
+            print("start log on sequence")
+            headers = LogMeIn(BASE_URL, PASSWD)        
+            print ("----------------------------------------------------------")        
+            mykostalsettings = kostal_writeablesettings()
+            
+            """
+            # This is the current list of tested capabilities - where we change Parameters on the Inverter
+            """
+            print ("Actively changing Parameters :")
+            pp.pprint (mykostalsettings.KostalwriteableSettings.items())                                    #Dictionary initially has no values set
+            #Setting Values:
+            #DynamicSoc - valid values: 0 (disabled), 1 (enabled)
+            mykostalsettings.KostalwriteableSettings['Battery:DynamicSoc:Enable'] = 0
+            #MinHomeComsumption - valid values: min 50 [w]
+            mykostalsettings.KostalwriteableSettings['Battery:MinHomeComsumption'] = 50
+            #MinSoc - valid values: range from 5 to 100, stepsize =5
+            myMinSOC= int(10.0)
+            mykostalsettings.KostalwriteableSettings['Battery:MinSoc'] = myMinSOC
+            #ShadowMgmt - valid values: 0=shadow management disabled, 1= shadowmanagement active for string 1 only, 2= shadowmanagement active for string 2 only, 3= shadow management active for string 1 and 2
+            #Values can be set up to value of 7 -but higher values greater than 4 - unclear what they do
+            mykostalsettings.KostalwriteableSettings['Generator:ShadowMgmt:Enable'] = 3
+            #
+            #
+            #Parameters for Digital Output - START:
+            #
+            #DigitalOutputs:Customer:ConfigurationFlags - -valid values [int] 1 = Self-consumption control, 2= Dynamic Self-consumption control & Function 1, 3&4= Deactivated, 5=Self-consumption control & Function 2, 6=Dynamic Self-consumption control & Function 2, 7,8= Deactivated, 9= Self-consumption control & Function 1 & Other Options Leave Switch Output Activated, 10 = Dynamic Self-consumption control & Function 1 & Other Options Leave Switch Output Activated, 11,12= Deactivated, 13=Self-consumption control & Function 2 & Other Options Leave Switch Output Activated, 14= Dynamic Self-consumption control & Function 2 & Other Options Leave Switch Output Activated
+            mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:ConfigurationFlags'] = 14
+            #
+            # For Function 1:
+            #'DigitalOutputs:Customer:TimeMode:PowerThreshold' [W]
+            mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:PowerThreshold']=1112
+            #'DigitalOutputs:Customer:TimeMode:StableTime' [min]
+            mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:StableTime']= 4
+            #'DigitalOutputs:Customer:TimeMode:RunTime' [min]
+            mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:RunTime']= 3
+            #'DigitalOutputs:Customer:TimeMode:MaxNoOfSwitchingCyclesPerDay' [int]
+            mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:MaxNoOfSwitchingCyclesPerDay']= 2
+            # For Function 2: 
+            # DigitalOutputs:Customer:PowerMode:OnPowerThreshold - Activation Limit - valid values in [w]
+            mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:PowerMode:OnPowerThreshold'] = 1533
+            # DigitalOutputs:Customer:PowerMode:OffPowerThreshold -Deactiviation Limit - valid values in [w]
+            mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:PowerMode:OffPowerThreshold'] = 1111
+            #For Other Options: 
+            #DigitalOutputs:Customer:DelayTime -valid values in [s]
+            mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:DelayTime']= 11        
+            #
+            #Parameters for Digital Output - END
+            #
+            #Applying values:
+            mykostalsettings.writevalue('Battery:DynamicSoc:Enable',mykostalsettings.KostalwriteableSettings['Battery:DynamicSoc:Enable'])
+            mykostalsettings.writevalue('Battery:MinHomeComsumption',mykostalsettings.KostalwriteableSettings['Battery:MinHomeComsumption'])
+            mykostalsettings.writevalue('Battery:MinSoc',mykostalsettings.KostalwriteableSettings['Battery:MinSoc'])
+            mykostalsettings.writevalue('Generator:ShadowMgmt:Enable',mykostalsettings.KostalwriteableSettings['Generator:ShadowMgmt:Enable'])
+            #
+            mykostalsettings.writevalue('DigitalOutputs:Customer:ConfigurationFlags', mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:ConfigurationFlags'])
+            mykostalsettings.writevalue('DigitalOutputs:Customer:DelayTime',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:DelayTime'])
+            mykostalsettings.writevalue('DigitalOutputs:Customer:TimeMode:PowerThreshold',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:PowerThreshold'])
+            mykostalsettings.writevalue('DigitalOutputs:Customer:TimeMode:StableTime',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:StableTime'])
+            mykostalsettings.writevalue('DigitalOutputs:Customer:TimeMode:RunTime',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:RunTime'])
+            mykostalsettings.writevalue('DigitalOutputs:Customer:TimeMode:MaxNoOfSwitchingCyclesPerDay',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:TimeMode:MaxNoOfSwitchingCyclesPerDay'])
+            mykostalsettings.writevalue('DigitalOutputs:Customer:PowerMode:OnPowerThreshold',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:PowerMode:OnPowerThreshold'])
+            mykostalsettings.writevalue('DigitalOutputs:Customer:PowerMode:OffPowerThreshold',mykostalsettings.KostalwriteableSettings['DigitalOutputs:Customer:PowerMode:OffPowerThreshold'])        
+            #Show the updated values of the dictionary:
+            pp.pprint (mykostalsettings.KostalwriteableSettings.items())
+            
+            #Alternatively, you could directly call the function and pass values too:
+            #mykostalsettings.writevalue("Battery:MinSoc", 50)
+            """
+            # End section where we change parameters
+            """
+    
+            
+            
+            #This section shows how to pull the Events from the Inverter
+            print ("----------------------------------------------------------")        
+            print ("Start accessing the event log information")
+            MyEventStatus, myCurrentErrorEvents = mykostalsettings.getEvents()
+            if ((MyEventStatus == 0) and (len (myCurrentErrorEvents) <1)):
+                print("Everything is all right - no active error events from Inverter")
+            else:
+                print ("We have the following error events")
+                pp.pprint(myCurrentErrorEvents)
+            if (MyEventStatus == -1):
+                print("We have trouble accessing the event information of the inverter")
+                pp.pprint(myCurrentErrorEvents)         
+            #
+                
+            #This section shows how to pull various Live Data and Statistics data  from the inverter  
+            StandardLiveView = "/processdata/devices:local"              # The standard stuff
+            ACView =  "/processdata/devices:local:ac"                               
+            BatteryView = "/processdata/devices:local:battery"           #Everything from Battery  
+            PowerMeterView = "/processdata/devices:local:powermeter"     #Everything from Smartmeter
+            StatisticsView = "/processdata/scb:statistic:EnergyFlow"     #All the Statistics stuff 
+            Stringview1 = "/processdata/devices:local:pv1"
+            Stringview2 = "/processdata/devices:local:pv2"
+            ProberView = "/processdata/devices:prober"                   #Get nothing
+            
+            #self.eventsurl =  "/processdata/devices:scb:event:"         #Get nothing .. 
+            #
+            #Just to prove we can loop over the values too, you can change the while loop to run multiple times
+            starttime= time.time()
+            i = 0
+            while (i <1):                                           #Running the query once...
+                MyLiveDataStatus, MyLiveData = mykostalsettings.getLiveData(StandardLiveView)
+                MyACDataStatus, MyACLiveData = mykostalsettings.getLiveData(ACView)
+                MyBatteryStatus, MyBatteryLiveData =  mykostalsettings.getLiveData(BatteryView)
+                MyPowerMeterStatus, MyPowerMeterLiveData = mykostalsettings.getLiveData(PowerMeterView)
+                MyStaticsDataStatus, MyStatisticsLiveData = mykostalsettings.getLiveData(StatisticsView)
+                MyString1DataStatus, MyString1LiveData = mykostalsettings.getLiveData(Stringview1)
+                MyString2DataStatus, MyString2LiveData = mykostalsettings.getLiveData(Stringview2)
+                ProberDataStataus, ProberViewData = mykostalsettings.getLiveData(ProberView)
+                
+                print("-----------------------------------------")
+                print("Here are all the Values from MyLiveData :")
+                pp.pprint(MyLiveData)
+                print("-----------------------------------------")
+                print("Here are all the Values from MyACLiveData :")
+                pp.pprint(MyACLiveData)
+                print("-----------------------------------------")
+                print("Here are all the Values from MyBatteryLiveData :")            
+                pp.pprint(MyBatteryLiveData)
+                print("-----------------------------------------")
+                print("Here are all the Values from MyPowerMeterLiveData :")            
+                pp.pprint(MyPowerMeterLiveData)
+                print("-----------------------------------------")
+                print("Here are all the Values from MyStatisticsLiveData :")            
+                pp.pprint(MyStatisticsLiveData)
+                print("-----------------------------------------")
+                print("Here are all the Values from MyString1LiveData and MyString2LiveData :")
+                pp.pprint(MyString1LiveData)
+                pp.pprint(MyString2LiveData)
+                #pp.pprint (ProberViewData)  HomeOwn_P
+                print ("----------------------------------------------------------")
+                print ("DC Power Generation (from String Values)                             :", round((MyString1LiveData['P']+MyString2LiveData['P']),0))    
+                print ("A single value from MyLiveData - Home Battery Generation             :", MyLiveData['HomeBat_P'])
+                print ("A single value from MyLiveData - Home Power Consumption from Battery :", MyBatteryLiveData['P'])
+                print ("A single value from MyLiveData - Home Grid consumption               :", MyLiveData['HomeGrid_P'])
+                print ("A single value from MyLiveData - PV Power Consumption                :", MyLiveData['HomePv_P'])
+                print ("A single value from MyPowerMeterLiveData - PV Power to /from Grid    :", round(MyPowerMeterLiveData['P']),0)
+                print ("A single value from MyBatteryLiveData -Cycle Counts                  :", MyBatteryLiveData['Cycles'])
+                print ("A single value from MyBatteryLiveData -'WorkCapacity'                :", round(MyBatteryLiveData['WorkCapacity'],0))
+                print ("A single value from MyStatisticsLiveData - Yearly Yield              :", round(MyStatisticsLiveData['Statistic:Yield:Year'],0))
+                print ("----------------------------------------------------------")
+                
+                i = i +1
+            endtime =time.time()
+            Elapsedtime = endtime-starttime
+            print ("My elapsed time was", round(Elapsedtime,1)," seconds - I ran the loop for ", i," time(s)")
+            
+            LogMeOut (headers,BASE_URL)
+       #     print ("I logged out")
     except Exception as Badmain:
-        print ("Ran into error executing Main Routine :", Badmain)
+        print ("Ran into error executing Main kostal-RESTAPI Routine :", Badmain)
 
