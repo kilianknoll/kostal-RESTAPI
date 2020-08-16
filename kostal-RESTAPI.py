@@ -46,8 +46,8 @@
 # Version 1.0.3
 # Added ability to operate via commandline interface to either set - or query parameters
 # For Options use python3 KostalRestapi.py -h 
-#
-#
+#Version 1.0.3
+# Added Command Line Option to write Battery Device Type -WriteBatteryDeviceType
 #
 # 
 # Tested with:
@@ -59,7 +59,7 @@
 #   PASSWD that you log in to the Kostal Inverter
 #
 BASE_URL = "http://192.168.178.41/api/v1"
-PASSWD = 'YOURSECRETPWD'
+PASSWD = 'Knoll123'
 #
 # Nothing configurable beyond this point
 
@@ -349,7 +349,7 @@ class kostal_writeablesettings (object):
                     MyProcessdataids = []
                     MyProcessdataids.append(self.livedatatdict[0]['processdata'])
                     for elem in MyProcessdataids:
-                        #print ("Single Entry", elem["id"])
+                        print ("Single Entry", elem["id"])
                         for subele in elem:
                             MyProcessDict[subele['id']]= subele["value"]
                 else:               #We have no  messages at all coming from the Inverter
@@ -460,6 +460,12 @@ if __name__ == "__main__":
                            choices=[1],
                            help='Reads Battery Data from Inverter: Set to 1 if you would like to...')  
 
+        my_parser.add_argument('-WriteBatteryDeviceType',
+                           action='store',
+                           type = int,
+                           choices=[0,2,4],
+                           help='Writes which Battery Device to activate 0=None, ,2=Piko Battery Li, 4=BYD')  
+                           
         my_parser.add_argument('-ReadPowerMeterData',
                            action='store',
                            type = int,
@@ -594,6 +600,12 @@ if __name__ == "__main__":
                 MyBatteryStatus, MyBatteryLiveData =  mykostalsettings.getLiveData(BatteryView)
                 print("Here are all the Values from ReadBatteryData :")
                 pp.pprint(MyBatteryLiveData)  
+                
+            if (str(args['WriteBatteryDeviceType']) != 'None'):                   
+                mykostalsettings.KostalwriteableSettings['Battery:Type'] = args['WriteBatteryDeviceType']
+                mykostalsettings.writevalue('Battery:Type',mykostalsettings.KostalwriteableSettings['Battery:Type'])
+                #print ("I hope I wrote something...", mykostalsettings.KostalwriteableSettings['Battery:Type'] )                
+                                              
 
             if (str(args['ReadPowerMeterData']) != 'None'):
                 PowerMeterView = "/processdata/devices:local:powermeter"     #Everything from Smartmeter
@@ -618,6 +630,8 @@ if __name__ == "__main__":
                 MyString2DataStatus, MyString2LiveData = mykostalsettings.getLiveData(Stringview2)
                 print("Here are all the Values from ReadString2Data :")
                 pp.pprint(MyString2LiveData) 
+
+                                
                 
 
 
