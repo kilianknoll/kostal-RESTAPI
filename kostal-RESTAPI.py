@@ -46,8 +46,10 @@
 # Version 1.0.3
 # Added ability to operate via commandline interface to either set - or query parameters
 # For Options use python3 KostalRestapi.py -h 
-#Version 1.0.3
+# Version 1.0.3
 # Added Command Line Option to write Battery Device Type -WriteBatteryDeviceType
+# Version 1.04
+# Bugfix in LogMeOut function 
 #
 # 
 # Tested with:
@@ -184,7 +186,7 @@ def LogMeIn(BASE_URL, PASSWD):
 
 def LogMeOut( myheader, MybaseURL):
     try:
-        LogoutURL = "auth/logout"
+        LogoutURL = "/auth/logout"
         LogoutURL = MybaseURL + LogoutURL
         myresponse = requests.post(LogoutURL, headers= myheader)
         
