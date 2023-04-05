@@ -9,7 +9,7 @@ Introduction
 This library provides a pure Python interface to access Kostal Inverters via currently undocumented RESTAPIs
 
 
-Tested  with Python version 3.5, 3.6 and 3.8.
+Tested  with Python version 3.5, 3.6, 3.8, 3.10
 
 
 
@@ -44,7 +44,11 @@ Getting started
 ---------------
 
 To use ``kostal-RESTAPI`` in a project take a look at the __main__ section in kostal-RESTAPI.py how to include it in your environment
-You may also run the script without any parameters to understand the command line options
+Command Line Usages:
+python kostal-RESTAPI.py 
+This will set log on and read parameters
+python kostal-RESTAPI.py -h 
+This will show you what commandline options are available
 
 
 

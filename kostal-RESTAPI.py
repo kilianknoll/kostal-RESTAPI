@@ -51,6 +51,12 @@
 # Version 1.04
 # Bugfix in LogMeOut function 
 #
+# Version 1.0.4 
+# Bugfix in accessing objects "list indices must be integers or slices, not str" if script was called without parameters
+# Changed usage model - Two modes of operation:
+#   If called without parameters, Reading parameters only - e.g.: python kostal-RESTAPI.py
+#   Use the following to see what parameters can be set: python kostal-RESTAPI.py -h
+#
 # 
 # Tested with:
 # python 3.6.2 (windows)
@@ -346,12 +352,10 @@ class kostal_writeablesettings (object):
                 myresponse = cleandata(myresponse)             
                 self.livedatatdict = json.loads(myresponse)
                 LengthDict= len(self.livedatatdict)
-                i = 0
                 if (LengthDict >0):                  
                     MyProcessdataids = []
                     MyProcessdataids.append(self.livedatatdict[0]['processdata'])
                     for elem in MyProcessdataids:
-                        print ("Single Entry", elem["id"])
                         for subele in elem:
                             MyProcessDict[subele['id']]= subele["value"]
                 else:               #We have no  messages at all coming from the Inverter
@@ -638,10 +642,8 @@ if __name__ == "__main__":
 
 
             LogMeOut (headers,BASE_URL)
-        #xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-        # Example mode of operations..
-        #xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx            
-        else:           #do normal stuff
+        elif (CommandlineInput == 2):
+            print ("User has tweaked the code and I am setting a couple of parameters")
             #do normal stuff
             print ("----------------------------------------------------------")    
             print("start log on sequence")
@@ -716,9 +718,18 @@ if __name__ == "__main__":
             """
     
             
+
+            
+        #xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        # Example mode of operations..
+        #xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx            
+        else:           #do normal stuff
+            headers = LogMeIn(BASE_URL, PASSWD)              
+            mykostalsettings = kostal_writeablesettings()
             
             #This section shows how to pull the Events from the Inverter
-            print ("----------------------------------------------------------")        
+            print ("----------------------------------------------------------")
+            print ("READING PARAMETERS ")
             print ("Start accessing the event log information")
             MyEventStatus, myCurrentErrorEvents = mykostalsettings.getEvents()
             if ((MyEventStatus == 0) and (len (myCurrentErrorEvents) <1)):
@@ -794,7 +805,9 @@ if __name__ == "__main__":
             print ("My elapsed time was", round(Elapsedtime,1)," seconds - I ran the loop for ", i," time(s)")
             
             LogMeOut (headers,BASE_URL)
-       #     print ("I logged out")
+            print ("I logged out")
+            print ("----------------------------------------------------------")
+            print ("If you want to change parameters, please use the following how to use:  python kostal-RESTAPI -h ")
     except Exception as Badmain:
         print ("Ran into error executing Main kostal-RESTAPI Routine :", Badmain)
 
