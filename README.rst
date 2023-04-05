@@ -45,6 +45,7 @@ Getting started
 
 To use ``kostal-RESTAPI`` in a project 
 * take a look at the __main__ section in kostal-RESTAPI.py how to include it in your environment
+
 * Command Line Usages:
 	* python kostal-RESTAPI.py 
 		This will set log on and read parameters
